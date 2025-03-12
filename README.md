@@ -127,3 +127,15 @@ class CustomSpy implements Spy, CanCreateRequestIds
     }
 }
 ```
+
+## Testing
+
+You can run the tests using Pest:
+
+```bash
+composer test
+```
+
+## License
+
+Dedent is open-sourced software licensed under the [MIT license](LICENSE.md).

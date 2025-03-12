@@ -10,7 +10,7 @@ It is a simple middleware that reports request and response information to a spy
 You can install Guzzle Spy Middleware using Composer:
 
 ```bash
-composer require exeque/guzzle-spy-middleware
+composer require exeque/guzzle-spy
 ```
 
 ## Usage

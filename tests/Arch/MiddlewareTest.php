@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 use ExeQue\Guzzle\Spy\Middleware;
-use ExeQue\Guzzle\Spy\Spy;
 use Psr\Http\Message\RequestInterface;
+use Tests\Support\TestSpy;
 
 arch()->expect(Middleware::class)->toBeInvokable();
 
 test('returns a closure when called', function () {
     $middleware = new Middleware(
-        mock(Spy::class),
+        new TestSpy(),
     );
 
     $output = $middleware(fn() => '');
@@ -20,7 +20,7 @@ test('returns a closure when called', function () {
 
 test('returned closure has correct parameters', function () {
     $middleware = new Middleware(
-        mock(Spy::class),
+        new TestSpy(),
     );
 
     $output = $middleware(fn() => '');

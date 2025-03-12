@@ -25,8 +25,7 @@
     ],
     "require-dev": {
         "pestphp/pest": "^3.7",
-        "symfony/var-dumper": "^7.2",
-        "mockery/mockery": "^1.6"
+        "symfony/var-dumper": "^7.2"
     },
     "config": {
         "allow-plugins": {

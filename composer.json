@@ -1,0 +1,40 @@
+{
+    "name": "exeque/guzzle-spy",
+    "description": "Spy middleware for Guzzle",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.9"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "ExeQue\\Guzzle\\Spy\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Morten Harders",
+            "email": "mmh@harders-it.dk"
+        }
+    ],
+    "require-dev": {
+        "pestphp/pest": "^3.7",
+        "symfony/var-dumper": "^7.2",
+        "mockery/mockery": "^1.6"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "scripts": {
+        "test": "php vendor/bin/pest",
+        "test:coverage": "php vendor/bin/pest --coverage"
+    }
+}

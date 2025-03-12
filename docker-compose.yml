@@ -1,0 +1,16 @@
+services:
+  php:
+    user: "1000:1000"
+    build:
+      context: ./docker
+    volumes:
+      - .:/var/www/html
+    environment:
+      - XDEBUG_MODE=coverage
+  composer:
+    user: "1000:1000"
+    extends:
+      service: php
+    volumes:
+      - .:/var/www/html
+    entrypoint: ["composer"]

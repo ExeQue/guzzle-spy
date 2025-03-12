@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use ExeQue\Guzzle\Spy\Data\RequestData;
-use ExeQue\Guzzle\Spy\Data\ResponseData;
 use ExeQue\Guzzle\Spy\Middleware;
 use ExeQue\Guzzle\Spy\Rejection;
 use ExeQue\Guzzle\Spy\Spy;

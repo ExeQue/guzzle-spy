@@ -24,7 +24,7 @@ class Middleware
     public function __invoke(callable $handler): Closure
     {
         return function (RequestInterface $request, array $options) use ($handler) {
-            $id = $options[Spy::REQUEST_ID] = $this->resolveRequestId($options);
+            $id = $options[Spy::REQUEST_ID] = $this->resolveRequestId($request, $options);
 
             Assert::string($id, 'Request ID must be a string. Got: %s');
 
@@ -109,7 +109,7 @@ class Middleware
         return Create::rejectionFor($rejection);
     }
 
-    private function resolveRequestId(array $options): string
+    private function resolveRequestId(RequestInterface $request, array $options): string
     {
         if (array_key_exists(Spy::REQUEST_ID, $options)) {
             $id = $options[Spy::REQUEST_ID];
@@ -124,7 +124,7 @@ class Middleware
         }
 
         if ($this->spy instanceof CanCreateRequestIds) {
-            return $this->spy->createRequestId();
+            return $this->spy->createRequestId($request, $options);
         }
 
         return uniqid('guzzle-spy-', true);

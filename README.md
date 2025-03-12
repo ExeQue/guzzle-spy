@@ -110,7 +110,7 @@ use ExeQue\Guzzle\Spy\Contracts\CanCreateRequestIds;
 use ExeQue\Guzzle\Spy\Contracts\Spy;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Ramsey/Uuid/Uuid;
+use Ramsey\Uuid\Uuid;
 
 class CustomSpy implements Spy, CanCreateRequestIds
 {

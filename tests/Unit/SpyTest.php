@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use ExeQue\Guzzle\Spy\Spy;
+use GuzzleHttp\TransferStats;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -28,33 +29,44 @@ it('runs `before` callbacks', function () {
 });
 
 it('runs `after` callbacks', function () {
-    $inputId       = md5(random_bytes(16));
-    $inputRequest  = $this->request()->make();
-    $inputResponse = $this->response()->make();
+    $inputId            = md5(random_bytes(16));
+    $inputRequest       = $this->request()->make();
+    $inputResponse      = $this->response()->make();
+    $inputTransferStats = $this->transferStats($inputRequest)->make();
 
     $hasRun = false;
 
     $spy = new Spy();
-    $spy->onAfter(function (string $id, ResponseInterface $response, RequestInterface $request) use (
+    $spy->onAfter(function (
+        string            $id,
+        ResponseInterface $response,
+        RequestInterface  $request,
+        TransferStats     $transferStats
+    ) use (
         $inputId,
         $inputRequest,
         $inputResponse,
+        $inputTransferStats,
         &$hasRun
     ) {
         $hasRun = true;
 
         expect($id)->toBe($inputId)
             ->and($response)->toBe($inputResponse)
-            ->and($request)->toBe($inputRequest);
+            ->and($request)->toBe($inputRequest)
+            ->and($transferStats)->toBe($inputTransferStats);
     });
 
-    $spy->after($inputId, $inputResponse, $inputRequest, []);
+    $spy->after($inputId, $inputResponse, $inputRequest, $inputTransferStats, []);
+
+    expect($hasRun)->toBeTrue();
 });
 
 it('runs callbacks in order given', function () {
-    $inputId       = md5(random_bytes(16));
-    $inputRequest  = $this->request()->make();
-    $inputResponse = $this->response()->make();
+    $inputId            = md5(random_bytes(16));
+    $inputRequest       = $this->request()->make();
+    $inputResponse      = $this->response()->make();
+    $inputTransferStats = $this->transferStats($inputRequest)->make();
 
     $expected = [
         'first',
@@ -104,7 +116,7 @@ it('runs callbacks in order given', function () {
     );
 
     $spy->before($inputId, $inputRequest, []);
-    $spy->after($inputId, $inputResponse, $inputRequest, []);
+    $spy->after($inputId, $inputResponse, $inputRequest, $inputTransferStats, []);
 
     expect($actualBefore)->toBe($expected)
         ->and($actualAfter)->toBe($expected);

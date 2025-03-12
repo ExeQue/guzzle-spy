@@ -3,9 +3,11 @@
 namespace Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
+use Psr\Http\Message\RequestInterface;
 use Tests\Support\ClientFactory;
 use Tests\Support\RequestFactory;
 use Tests\Support\ResponseFactory;
+use Tests\Support\TransferStatsFactory;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -22,5 +24,10 @@ abstract class TestCase extends BaseTestCase
     public function request(): RequestFactory
     {
         return new RequestFactory();
+    }
+
+    public function transferStats(RequestInterface $request): TransferStatsFactory
+    {
+        return new TransferStatsFactory($request);
     }
 }

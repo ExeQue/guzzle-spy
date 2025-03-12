@@ -11,6 +11,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\RejectionException;
+use GuzzleHttp\TransferStats;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\IdGeneratingSpy;
@@ -106,11 +107,11 @@ it('spies correctly with http_errors enabled', function () {
                 function (array $responses) {
                     expect($responses)->toHaveCount(2);
 
-                    /** @var array{response: ResponseInterface, request: RequestInterface, options: array} $success */
+                    /** @var array{response: ResponseInterface, request: RequestInterface, transferStats: TransferStats, options: array} $response */
                     $success = array_shift($responses);
                     expect((string)$success['response']->getBody())->toBe('fizz buzz');
 
-                    /** @var array{response: ResponseInterface, request: RequestInterface, options: array} $failed */
+                    /** @var array{response: ResponseInterface, request: RequestInterface, transferStats: TransferStats, options: array} $response */
                     $failed = array_shift($responses);
                     expect((string)$failed['response']->getBody())->toBe('biz baz')
                         ->and($failed['response']->getStatusCode())->toBe(404);
@@ -141,7 +142,7 @@ it('handles simple rejections from the handler', function () {
     $spy->responses(function (array $responses) use ($reason) {
         expect($responses)->toHaveCount(1);
 
-        /** @var array{response: ResponseInterface, request: RequestInterface, options: array} $response */
+        /** @var array{response: ResponseInterface, request: RequestInterface, transferStats: TransferStats, options: array} $response */
         $response = array_shift($responses);
 
         expect($response['response'])->toBeInstanceOf(Rejection::class)
@@ -169,7 +170,7 @@ it('handles request exceptions without a response', function () {
     $spy->responses(function (array $responses) {
         expect($responses)->toHaveCount(1);
 
-        /** @var array{response: ResponseInterface, request: RequestInterface, options: array} $response */
+        /** @var array{response: ResponseInterface, request: RequestInterface, transferStats: TransferStats, options: array} $response */
         $response = array_shift($responses);
         expect($response['response'])->toBeInstanceOf(Rejection::class)
             ->and($response['response']->getReasonPhrase())->toBe('No response: foo bar')
@@ -266,4 +267,46 @@ it('uses the spy to create request ids if the spy supports it', function () {
             ->and($requests[$id]['options'])->toHaveKey(Spy::REQUEST_ID)
             ->and($requests[$id]['options'][Spy::REQUEST_ID])->toBe($id);
     });
+});
+
+it('logs transfer stats', function () {
+    $client = $this
+        ->client()
+        ->responses([
+            $this->response()->make(),
+        ])
+        ->middleware(new Middleware(
+            $spy = new TestSpy()
+        ))
+        ->make();
+
+    $client->get('foo.bar');
+
+    $spy->responses(function (array $responses) {
+        /** @var array{response: ResponseInterface, request: RequestInterface, transferStats: TransferStats, options: array} $response */
+        $response = array_shift($responses);
+
+        expect($response)->toHaveKey('transferStats')
+            ->and($response['transferStats'])->toBeInstanceOf(TransferStats::class);
+    });
+});
+
+it('retains any existing transfer stats handlers', function () {
+    $client = $this
+        ->client()
+        ->responses([
+            $this->response()->make(),
+        ])
+        ->middleware(new Middleware(new TestSpy()))
+        ->make();
+
+    $hasRun = false;
+
+    $client->get('foo.bar', [
+        'on_stats' => function (TransferStats $stats) use (&$hasRun) {
+            $hasRun = true;
+        },
+    ]);
+
+    expect($hasRun)->toBeTrue();
 });

@@ -13,4 +13,5 @@ services:
       service: php
     volumes:
       - .:/var/www/html
+      - ~/.cache/composer:/.composer/cache
     entrypoint: ["composer"]

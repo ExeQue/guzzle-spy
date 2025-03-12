@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ExeQue\Guzzle\Spy;
 
 use ExeQue\Guzzle\Spy\Contracts\Spy as SpyContract;
+use GuzzleHttp\TransferStats;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -40,9 +41,9 @@ class Spy implements SpyContract
         $this->runCallbacks('before', $id, $request, $options);
     }
 
-    public function after(string $id, ResponseInterface $response, RequestInterface $request, array $options): void
+    public function after(string $id, ResponseInterface $response, RequestInterface $request, TransferStats $transferStats, array $options): void
     {
-        $this->runCallbacks('after', $id, $response, $request, $options);
+        $this->runCallbacks('after', $id, $response, $request, $transferStats, $options);
     }
 
     public function onBefore(callable ...$callbacks): static

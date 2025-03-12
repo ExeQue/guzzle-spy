@@ -10,12 +10,16 @@ use ExeQue\Guzzle\Spy\Contracts\Spy;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\RequestOptions;
+use GuzzleHttp\TransferStats;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Webmozart\Assert\Assert;
 
 class Middleware
 {
+    private array $transferStats = [];
+
     public function __construct(
         private readonly Spy $spy,
     ) {
@@ -28,7 +32,7 @@ class Middleware
 
             Assert::string($id, 'Request ID must be a string. Got: %s');
 
-            $this->handleBefore($id, $request, $options);
+            $options = $this->handleBefore($id, $request, $options);
 
             /** @var PromiseInterface $response */
             $response = $handler($request, $options);
@@ -37,8 +41,10 @@ class Middleware
         };
     }
 
-    private function handleBefore(string $id, RequestInterface $request, array $options): void
+    private function handleBefore(string $id, RequestInterface $request, array $options): array
     {
+        $this->applyTransferStatsHandler($id, $options);
+
         $this->spy->before(
             $id,
             $request,
@@ -46,6 +52,8 @@ class Middleware
         );
 
         $request->getBody()->rewind();
+
+        return $options;
     }
 
     private function handleAfter(
@@ -77,7 +85,9 @@ class Middleware
         RequestInterface  $request,
         array             $options
     ): ResponseInterface {
-        $this->spy->after($id, $response, $request, $options);
+        $stats = $this->getTransferStats($id) ?? new TransferStats($request);
+
+        $this->spy->after($id, $response, $request, $stats, $options);
 
         $response->getBody()->rewind();
 
@@ -90,6 +100,7 @@ class Middleware
         RequestInterface $request,
         array            $options
     ): PromiseInterface {
+        $stats    = $this->getTransferStats($id) ?? new TransferStats($request);
         $response = new Rejection('Unknown error', 999);
 
         if (is_string($rejection)) {
@@ -104,7 +115,7 @@ class Middleware
             }
         }
 
-        $this->spy->after($id, $response, $request, $options);
+        $this->spy->after($id, $response, $request, $stats, $options);
 
         return Create::rejectionFor($rejection);
     }
@@ -128,5 +139,24 @@ class Middleware
         }
 
         return uniqid('guzzle-spy-', true);
+    }
+
+    private function applyTransferStatsHandler(string $id, array &$options): void
+    {
+        $existing = $options[RequestOptions::ON_STATS] ?? fn() => null;
+
+        $options[RequestOptions::ON_STATS] = function (TransferStats $transferStats) use ($existing, $id) {
+            $this->transferStats[$id] = $transferStats;
+
+            $existing($transferStats);
+        };
+    }
+
+    private function getTransferStats(string $id): ?TransferStats
+    {
+        $stats = $this->transferStats[$id] ?? null;
+        unset($this->transferStats[$id]);
+
+        return $stats;
     }
 }
